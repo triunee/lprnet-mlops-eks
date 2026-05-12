@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import re
 import unicodedata
 from datetime import datetime
 from pathlib import Path
@@ -22,7 +23,7 @@ def run_evaluation(endpoint: str, img_dir: str, model_version: str):
     correct = 0
 
     for idx, img_path in enumerate(images, start=1):
-        ground_truth = unicodedata.normalize("NFC", img_path.stem)
+        ground_truth = unicodedata.normalize("NFC", re.sub(r'_\d+$', '', img_path.stem))
         with open(img_path, "rb") as f:
             resp = requests.post(
                 f"{endpoint}/predict",
