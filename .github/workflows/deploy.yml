@@ -59,7 +59,7 @@ jobs:
       - name: Rollout restart deployment
         run: |
           kubectl set image deployment/${DEPLOYMENT_NAME} \
-            ${DEPLOYMENT_NAME}=${IMAGE_URI}
+            lprnet=${IMAGE_URI}
           kubectl rollout restart deployment/${DEPLOYMENT_NAME}
           kubectl rollout status deployment/${DEPLOYMENT_NAME} --timeout=5m
 
