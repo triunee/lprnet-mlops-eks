@@ -3,6 +3,10 @@ name: Deploy to EKS
 on:
   push:
     branches: [main]
+    paths:
+      - 'app/**'
+      - 'Dockerfile'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 permissions:
