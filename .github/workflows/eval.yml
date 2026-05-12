@@ -1,0 +1,59 @@
+name: Model Evaluation
+
+on:
+  workflow_run:
+    workflows: ["Deploy to EKS"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  evaluate:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-eval
+          aws-region: ap-northeast-2
+
+      - name: Install dependencies
+        run: pip install requests boto3 tqdm
+
+      - name: Download test images from S3
+        run: |
+          aws s3 sync s3://${{ vars.S3_BUCKET }}/dataset/test/ ./test_imgs/
+          echo "다운로드 완료: $(ls test_imgs | wc -l)장"
+
+      - name: Run evaluation
+        id: eval
+        env:
+          NLB_URL: ${{ secrets.NLB_URL }}
+          MODEL_VERSION: ${{ vars.MODEL_VERSION }}
+          S3_BUCKET: ${{ vars.S3_BUCKET }}
+        run: |
+          python3 evaluate.py \
+            --endpoint $NLB_URL \
+            --img_dir ./test_imgs \
+            --model_version $MODEL_VERSION
+
+      - name: Write Summary
+        run: |
+          echo "## 모델 평가 결과" >> $GITHUB_STEP_SUMMARY
+          echo "| 항목 | 값 |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| 모델 버전 | ${{ vars.MODEL_VERSION }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 정확도 | ${{ steps.eval.outputs.accuracy }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 정답 수 | ${{ steps.eval.outputs.correct }} / ${{ steps.eval.outputs.total }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 평가 일시 | $(date '+%Y-%m-%d %H:%M') |" >> $GITHUB_STEP_SUMMARY
