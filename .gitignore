@@ -1,0 +1,38 @@
+# ── Terraform ────────────────────────────────────
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+
+# ── 모델 가중치 (S3에 보관) ───────────────────────
+*.onnx
+*.onnx.data
+*.pt
+*.ckpt
+weights/
+
+# ── Python ───────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# ── 환경변수 / 로컬 설정 ──────────────────────────
+.env
+.env.*
+
+# ── macOS ────────────────────────────────────────
+.DS_Store
+
+# ── IDE ───────────────────────────────────────────
+.vscode/
+
+# ── 테스트 이미지 (S3에서 다운로드) ──────────────
+test_imgs/
+
+# ── 내부 문서 ─────────────────────────────────────
+FINAL_PROJECT_SUMMARY.md

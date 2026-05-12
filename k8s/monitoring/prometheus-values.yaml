@@ -1,0 +1,31 @@
+grafana:
+  # adminPassword는 helm install/upgrade 시 --set grafana.adminPassword=$GRAFANA_PASSWORD 로 전달
+  service:
+    type: ClusterIP
+
+  serviceAccount:
+    create: true
+    name: grafana
+    # Step 6 완료 후 아래 주석 해제 + helm upgrade로 적용
+    # annotations:
+    #   eks.amazonaws.com/role-arn: arn:aws:iam::<AWS_ACCOUNT_ID>:role/grafana-cloudwatch
+
+  # CloudWatch 데이터소스 자동 등록 (LPRNet/ModelEval Namespace)
+  # Step 6(GitHub Actions + IAM Role 생성) 완료 후 아래 주석 해제 + helm upgrade로 적용
+  # additionalDataSources:
+  #   - name: CloudWatch
+  #     type: cloudwatch
+  #     access: proxy
+  #     uid: cloudwatch-lprnet
+  #     jsonData:
+  #       authType: default
+  #       defaultRegion: ap-northeast-2
+  #       customMetricsNamespaces: LPRNet/ModelEval
+  #     editable: true
+
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {}
+    serviceMonitorNamespaceSelector: {}
+    retention: 24h

@@ -1,0 +1,74 @@
+name: Deploy to EKS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-northeast-2
+  EKS_CLUSTER: lprnet-cluster
+  ECR_REPO: lprnet-inference
+  DEPLOYMENT_NAME: lprnet-inference
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-eval
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Download model from S3
+        run: |
+          aws s3 cp s3://${{ vars.S3_BUCKET }}/models/lprnet_kor_v1.onnx lprnet_kor_finetuned4.onnx
+          aws s3 cp s3://${{ vars.S3_BUCKET }}/models/lprnet_kor_v1.onnx.data lprnet_kor_finetuned4.onnx.data
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & Push image (linux/amd64)
+        env:
+          IMAGE_TAG: ${{ vars.MODEL_VERSION }}
+        run: |
+          IMAGE_URI=${{ steps.ecr.outputs.registry }}/${ECR_REPO}:${IMAGE_TAG}
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          docker buildx build \
+            --platform linux/amd64 \
+            -t $IMAGE_URI \
+            --push .
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --region $AWS_REGION \
+            --name $EKS_CLUSTER
+
+      - name: Rollout restart deployment
+        run: |
+          kubectl set image deployment/${DEPLOYMENT_NAME} \
+            ${DEPLOYMENT_NAME}=${IMAGE_URI}
+          kubectl rollout restart deployment/${DEPLOYMENT_NAME}
+          kubectl rollout status deployment/${DEPLOYMENT_NAME} --timeout=5m
+
+      - name: Write Summary
+        run: |
+          echo "## 배포 결과" >> $GITHUB_STEP_SUMMARY
+          echo "| 항목 | 값 |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| 클러스터 | ${EKS_CLUSTER} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 이미지 | ${IMAGE_URI} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 모델 버전 | ${{ vars.MODEL_VERSION }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 배포 일시 | $(date '+%Y-%m-%d %H:%M') |" >> $GITHUB_STEP_SUMMARY
