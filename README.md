@@ -173,39 +173,6 @@ kubectl apply -f k8s/monitoring/servicemonitor.yaml
 # 5. GitHub Actions 설정 후 push → 자동 배포 + 평가 트리거
 ```
 
-## 트러블슈팅
-
-### NAT Gateway 미생성으로 노드 조인 실패
-- **증상:** `NodeCreationFailure` (30분 대기)
-- **원인:** `-target=module.eks` 시 NAT Gateway가 생성되지 않아 Private 노드가 EKS에 조인 불가
-- **해결:**
-```bash
-terraform apply -target=aws_nat_gateway.main -target=aws_route.private_nat
-terraform apply
-```
-
-### Docker 이미지 아키텍처 불일치
-- **증상:** `no match for platform in manifest`
-- **원인:** Apple Silicon(arm64) 빌드 → EKS t3.medium(amd64) 실행 불가
-- **해결:** `--platform linux/amd64` 명시
-
-### 한글 인코딩 비교 오류
-- **증상:** 정답과 추론이 같아 보여도 비교 결과 X
-- **원인:** macOS 파일명(NFD) vs API 응답(NFC) 차이
-- **해결:** `unicodedata.normalize('NFC', ...)` 양쪽 통일
-
-## 비용 참고 (ap-northeast-2)
-
-| 리소스 | 시간당 |
-|--------|--------|
-| EKS 컨트롤 플레인 | $0.10 |
-| NAT Gateway | $0.045 |
-| NLB | $0.0225 |
-| t3.medium Spot x2 | ~$0.021 |
-| **합계** | **~$0.19/h ($4.5/일)** |
-
-> 사용 후 `terraform destroy`로 리소스 삭제 필요
-
 ## References
 
 - [kwon-evan/LPRNet](https://github.com/kwon-evan/LPRNet) — 베이스 모델
