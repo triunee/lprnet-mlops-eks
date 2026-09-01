@@ -35,4 +35,4 @@ build/
 test_imgs/
 
 # ── 내부 문서 ─────────────────────────────────────
-FINAL_PROJECT_SUMMARY.md
+docs/FINAL_PROJECT_SUMMARY.md

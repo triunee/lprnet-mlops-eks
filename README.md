@@ -175,5 +175,9 @@ kubectl apply -f k8s/monitoring/servicemonitor.yaml
 
 ## References
 
-- [kwon-evan/LPRNet](https://github.com/kwon-evan/LPRNet) — 베이스 모델
+- [kwon-evan/LPRNet](https://github.com/kwon-evan/LPRNet) — 베이스 모델 (Apache-2.0)
 - [LPRNet: License Plate Recognition via Deep Neural Networks](https://arxiv.org/abs/1806.10447v1)
+- [yakhyo/korean-license-plate-generator](https://github.com/yakhyo/korean-license-plate-generator) — `training/data_gen/` 합성 데이터 생성 코드 기반 (MIT)
+- [qjadud1994/Korean-license-plate-Generator](https://github.com/qjadud1994/Korean-license-plate-Generator) — `training/data_gen/` 생성 로직 참고 (MIT)
+
+서드파티 라이선스 전문은 [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) 참고.
