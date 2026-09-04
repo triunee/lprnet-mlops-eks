@@ -1,6 +1,6 @@
-# LPRNet — 한국 번호판 인식 EKS 배포
+# lprnet-pipeline
 
-Google Colab에서 파인튜닝한 LPRNet 모델을 FastAPI 추론 서버로 래핑하고 AWS EKS에 배포하는 MLOps 파이프라인입니다.
+Google Colab에서 파인튜닝한 LPRNet 모델을 FastAPI 추론 서버로 래핑하고 AWS EKS에 배포하는 개인 프로젝트입니다.
 
 ## 베이스 모델
 
